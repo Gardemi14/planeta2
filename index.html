@@ -2,7 +2,7 @@
 <html lang="pt">
 <head>
   <meta charset="UTF-8">
-  <title>Planeta Explodindo e Formando THAINÁ</title>
+  <title>VAI TOMAR NO CU</title>
   <style>
     body { margin: 0; overflow: hidden; background: #000; }
     canvas { display: block; }
@@ -18,7 +18,7 @@
 
     // Configurações da esfera
     const R = 200;
-    const step = 0.1;
+    const step = 0.05; // Reduzido para 0.05 para aumentar a densidade de letras
     const perspective = 400;
 
     // Velocidades de rotação
@@ -108,6 +108,7 @@
 
     // Função para iniciar a explosão
     function startExplosion() {
+      console.log("Iniciando fase: explode");
       phase = 'explode';
       phaseStartTime = Date.now();
 
@@ -120,6 +121,7 @@
 
     // Função para formar os nomes "THAINÁ"
     function startFormNames() {
+      console.log("Iniciando fase: formNames");
       phase = 'formNames';
       phaseStartTime = Date.now();
 
@@ -145,14 +147,21 @@
 
       for (let i = 0; i < nameGroups.length; i++) {
         const group = nameGroups[i];
+        let canFormGroup = true;
         for (let j = 0; j < letters.length; j++) {
           const letterToFind = letters[j];
           const letterObj = letterObjects.find(l => l.letter === letterToFind && !l.group);
-          if (letterObj) {
-            letterObj.group = i;
-            letterObj.targetX = group.x + j * 20;
-            letterObj.targetY = group.y;
+          if (!letterObj) {
+            canFormGroup = false;
+            break;
           }
+          letterObj.group = i;
+          letterObj.targetX = group.x + j * 20;
+          letterObj.targetY = group.y;
+        }
+        if (!canFormGroup) {
+          console.warn(`Não há letras suficientes para formar o grupo ${i + 1} de THAINÁ`);
+          break;
         }
       }
 
@@ -164,16 +173,20 @@
           letter.vy = Math.sin(angle) * 3;
         }
       });
+
+      console.log(`Total de grupos THAINÁ formados: ${nameGroups.length}`);
     }
 
     // Função para mover os nomes
     function startMoveNames() {
+      console.log("Iniciando fase: moveNames");
       phase = 'moveNames';
       phaseStartTime = Date.now();
     }
 
     // Função para dispersar e reiniciar
     function startDisperse() {
+      console.log("Iniciando fase: disperse");
       phase = 'disperse';
       phaseStartTime = Date.now();
 
@@ -230,4 +243,44 @@
         if (Date.now() - phaseStartTime >= phaseDurations.explode) {
           startFormNames();
         }
-      } else if (phase === 'form
+      } else if (phase === 'formNames') {
+        letterObjects.forEach(letter => {
+          if (letter.group !== null) {
+            letter.currentX += (letter.targetX - letter.currentX) * 0.05;
+            letter.currentY += (letter.targetY - letter.currentY) * 0.05;
+          } else {
+            letter.currentX += letter.vx;
+            letter.currentY += letter.vy;
+            // Garantir que as letras espalhadas quiquem nas bordas
+            if (letter.currentX < 0 || letter.currentX > canvas.width) letter.vx *= -1;
+            if (letter.currentY < 0 || letter.currentY > canvas.height) letter.vy *= -1;
+          }
+
+          ctx.fillStyle = "white"; // Letras brancas
+          ctx.font = '20px sans-serif';
+          ctx.fillText(letter.letter, letter.currentX, letter.currentY);
+        });
+
+        if (Date.now() - phaseStartTime >= phaseDurations.formNames) {
+          startMoveNames();
+        }
+      } else if (phase === 'moveNames') {
+        nameGroups.forEach(group => {
+          group.x += group.vx;
+          group.y += group.vy;
+
+          if (group.x < 0 || group.x > canvas.width - letters.length * 20) group.vx *= -1;
+          if (group.y < 20 || group.y > canvas.height) group.vy *= -1;
+        });
+
+        letterObjects.forEach(letter => {
+          if (letter.group !== null) {
+            const group = nameGroups[letter.group];
+            const index = letters.indexOf(letter.letter);
+            letter.currentX = group.x + index * 20;
+            letter.currentY = group.y;
+          } else {
+            letter.currentX += letter.vx;
+            letter.currentY += letter.vy;
+            // Garantir que as letras espalhadas quiquem nas bordas
+            if (letter.currentX
