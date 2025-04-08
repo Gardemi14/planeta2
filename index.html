@@ -18,7 +18,7 @@
 
     // Configurações da esfera
     const R = 200;
-    const step = 0.1; // Reduzido de 0.15 para 0.1 para aumentar a densidade de letras
+    const step = 0.1;
     const perspective = 400;
 
     // Velocidades de rotação
@@ -27,16 +27,8 @@
     const speedX = 0.005;
     const speedY = 0.007;
 
-    // Letras e cores do arco-íris
-    const letters = "THAINA"; // Alterado de "GARDEMI" para "THAINÁ"
-    const colors = [
-      "#FF0000", // Vermelho (T)
-      "#FF7F00", // Laranja (H)
-      "#FFFF00", // Amarelo (A)
-      "#00FF00", // Verde (I)
-      "#0000FF", // Azul (N)
-      "#8F00FF"  // Violeta (Á)
-    ];
+    // Letras (sem cores, todas serão brancas)
+    const letters = "THAINA";
 
     // Centro do canvas
     let cx = canvas.width / 2;
@@ -63,13 +55,11 @@
       for (let phi = 0; phi < 2 * Math.PI; phi += step) {
         const letterIndex = Math.floor(Math.random() * letters.length);
         const letter = letters[letterIndex];
-        const color = colors[letterIndex];
         const point = sphericalToCartesian(theta, phi);
         letterObjects.push({
           theta,
           phi,
           letter,
-          color,
           x: point.x,
           y: point.y,
           z: point.z,
@@ -212,7 +202,7 @@
           letter.currentX = x2d;
           letter.currentY = y2d;
 
-          ctx.fillStyle = letter.color;
+          ctx.fillStyle = "white"; // Letras brancas
           ctx.font = `${Math.floor(12 * scale)}px sans-serif`;
           ctx.fillText(letter.letter, x2d, y2d);
         });
@@ -232,7 +222,7 @@
           letter.currentX += letter.vx;
           letter.currentY += letter.vy;
 
-          ctx.fillStyle = letter.color;
+          ctx.fillStyle = "white"; // Letras brancas
           ctx.font = '20px sans-serif';
           ctx.fillText(letter.letter, letter.currentX, letter.currentY);
         });
@@ -240,98 +230,4 @@
         if (Date.now() - phaseStartTime >= phaseDurations.explode) {
           startFormNames();
         }
-      } else if (phase === 'formNames') {
-        letterObjects.forEach(letter => {
-          if (letter.group !== null) {
-            letter.currentX += (letter.targetX - letter.currentX) * 0.05;
-            letter.currentY += (letter.targetY - letter.currentY) * 0.05;
-          } else {
-            letter.currentX += letter.vx;
-            letter.currentY += letter.vy;
-            // Garantir que as letras espalhadas quiquem nas bordas
-            if (letter.currentX < 0 || letter.currentX > canvas.width) letter.vx *= -1;
-            if (letter.currentY < 0 || letter.currentY > canvas.height) letter.vy *= -1;
-          }
-
-          ctx.fillStyle = letter.color;
-          ctx.font = '20px sans-serif';
-          ctx.fillText(letter.letter, letter.currentX, letter.currentY);
-        });
-
-        if (Date.now() - phaseStartTime >= phaseDurations.formNames) {
-          startMoveNames();
-        }
-      } else if (phase === 'moveNames') {
-        nameGroups.forEach(group => {
-          group.x += group.vx;
-          group.y += group.vy;
-
-          if (group.x < 0 || group.x > canvas.width - letters.length * 20) group.vx *= -1;
-          if (group.y < 20 || group.y > canvas.height) group.vy *= -1;
-        });
-
-        letterObjects.forEach(letter => {
-          if (letter.group !== null) {
-            const group = nameGroups[letter.group];
-            const index = letters.indexOf(letter.letter);
-            letter.currentX = group.x + index * 20;
-            letter.currentY = group.y;
-          } else {
-            letter.currentX += letter.vx;
-            letter.currentY += letter.vy;
-            // Garantir que as letras espalhadas quiquem nas bordas
-            if (letter.currentX < 0 || letter.currentX > canvas.width) letter.vx *= -1;
-            if (letter.currentY < 0 || letter.currentY > canvas.height) letter.vy *= -1;
-          }
-
-          ctx.fillStyle = letter.color;
-          ctx.font = '20px sans-serif';
-          ctx.fillText(letter.letter, letter.currentX, letter.currentY);
-        });
-
-        if (Date.now() - phaseStartTime >= phaseDurations.moveNames) {
-          startDisperse();
-        }
-      } else if (phase === 'disperse') {
-        letterObjects.forEach(letter => {
-          letter.currentX += letter.vx;
-          letter.currentY += letter.vy;
-
-          ctx.fillStyle = letter.color;
-          ctx.font = '20px sans-serif';
-          ctx.fillText(letter.letter, letter.currentX, letter.currentY);
-        });
-
-        if (Date.now() - phaseStartTime >= phaseDurations.disperse) {
-          // Reiniciar para a esfera
-          phase = 'sphere';
-          phaseStartTime = null;
-          rotationX = 0;
-          rotationY = 0;
-          letterObjects.forEach(letter => {
-            const point = sphericalToCartesian(letter.theta, letter.phi);
-            letter.x = point.x;
-            letter.y = point.y;
-            letter.z = point.z;
-            letter.currentX = cx + point.x;
-            letter.currentY = cy + point.y;
-            letter.vx = 0;
-            letter.vy = 0;
-          });
-        }
-      }
-
-      requestAnimationFrame(animate);
-    }
-
-    animate();
-
-    window.addEventListener('resize', () => {
-      canvas.width = window.innerWidth;
-      canvas.height = window.innerHeight;
-      cx = canvas.width / 2;
-      cy = canvas.height / 2;
-    });
-  </script>
-</body>
-</html>
+      } else if (phase === 'form
